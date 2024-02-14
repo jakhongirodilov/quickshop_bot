@@ -105,8 +105,8 @@ class Database:
 
     async def add_product(self, name, description, price, category_id, subcategory_id):
         sql = """
-            INSERT INTO products_product (name, description, price, category_id, subcategory_id) 
-            VALUES ($1, $2, $3, $4, $5) 
+            INSERT INTO products_product (name, description, price, category_id, subcategory_id, created_at) 
+            VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP) 
             RETURNING *
         """
         return await self.execute(sql, name, description, price, category_id, subcategory_id, fetchrow=True)
@@ -256,27 +256,41 @@ class Database:
 
 
 # products_orders table ---------------------------------------------------------------------------------
-    async def add_order(self, user_id, product_id, quantity, price, total_price):
+        """
+        user = models.ForeignKey(Users, on_delete=models.CASCADE)
+        phone_number = models.CharField(max_length=50)
+        product = models.ForeignKey(Product, on_delete=models.CASCADE)
+        quantity = models.IntegerField()
+        price = models.DecimalField(max_digits=10, decimal_places=2)
+        total_price = models.DecimalField(max_digits=10, decimal_places=2)
+
+        full_name = models.CharField(max_length=100)
+        latitude = models.CharField(max_length=200)
+        longitude = models.CharField(max_length=200)
+        
+        order_date = models.DateTimeField(auto_now_add=True)
+        """
+    async def add_order(self, user_id, phone_number, product_id, quantity, price, total_price, full_name, latitude, longitude):
         sql = """
-            INSERT INTO "products_order" (user_id, product_id, quantity, price, total_price) 
-            VALUES ($1, $2, $3, $4, $5) 
+            INSERT INTO "products_order" (user_id, phone_number, product_id, quantity, price, total_price, full_name, latitude, longitude, order_date) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP) 
             RETURNING *
         """
-        return await self.execute(sql, user_id, product_id, quantity, price, total_price, fetchrow=True)
+        return await self.execute(sql, user_id, phone_number, product_id, quantity, price, total_price, full_name, latitude, longitude, fetchrow=True)
 
 
     async def select_all_orders(self):
-        sql = "SELECT * FROM 'products_order'"
+        sql = "SELECT * FROM products_order"
         return await self.execute(sql, fetch=True)
 
     async def select_order_by_id(self, order_id):
-        sql = "SELECT * FROM 'products_order' WHERE id = $1"
+        sql = "SELECT * FROM products_order WHERE id = $1"
         return await self.execute(sql, order_id, fetchrow=True)
 
     async def select_orders_by_user_id(self, user_id):
-        sql = "SELECT * FROM 'products_order' WHERE user_id = $1"
+        sql = "SELECT * FROM products_order WHERE user_id = $1"
         return await self.execute(sql, user_id, fetch=True)
 
     async def delete_order(self, order_id):
-        sql = "DELETE FROM 'products_order' WHERE id = $1"
+        sql = "DELETE FROM products_order WHERE id = $1"
         return await self.execute(sql, order_id, execute=True)

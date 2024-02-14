@@ -79,6 +79,8 @@ async def recieve_location(message: Message, state: FSMContext):
     latitude = data.get('latitude')
     longitude = data.get('longitude')
 
+    print(phone_number, type(phone_number))
+
     # Retrieve cart items for the user
     cart_items = await db.get_cart_items(user["id"])
 
@@ -87,16 +89,55 @@ async def recieve_location(message: Message, state: FSMContext):
         product = await db.select_product(cart_item['product_id'])
         total_price = product['price'] * cart_item['quantity']
         
+        # user_id, phone_number, product_id, quantity, price, total_price, full_name, latitude, longitude
         # Create an order for the current cart item
         await db.add_order(
             user_id=user['id'],
+            phone_number=phone_number,
             product_id=product['id'],
             quantity=cart_item['quantity'],
             price=product['price'],
-            total_price=total_price
+            total_price=total_price,
+            full_name=full_name,
+            latitude=latitude,
+            longitude=longitude
         )
 
     await db.clear_cart_items(user['id'])
 
     await state.finish()
     await message.answer('Buyurtmangiz qabul qilindi!', reply_markup=menu)
+
+
+#buyurtmalarni ko'rsatish
+@dp.message_handler(text="Buyurtmalarim")
+async def orders(message: types.Message):
+    user_id = message.from_user.id
+    user = await db.select_user(user_id)
+
+    orders = await db.select_orders_by_user_id(user["id"])
+
+    msg = "Barcha buyurtmalaringiz:\n"
+
+    """
+        user = models.ForeignKey(Users, on_delete=models.CASCADE)
+        phone_number = models.CharField(max_length=50)
+        product = models.ForeignKey(Product, on_delete=models.CASCADE)
+        quantity = models.IntegerField()
+        price = models.DecimalField(max_digits=10, decimal_places=2)
+        total_price = models.DecimalField(max_digits=10, decimal_places=2)
+
+        full_name = models.CharField(max_length=100)
+        latitude = models.CharField(max_length=200)
+        longitude = models.CharField(max_length=200)
+        
+        order_date = models.DateTimeField(auto_now_add=True)
+        """
+    for order in orders:
+        product = await db.select_product(order['product_id'])
+
+        msg += f"\nMahsulot: {product['name']}\nSoni: {order['quantity']}\nNarx: ${order['total_price']}\nSana: {order['order_date']}"
+
+
+
+    await message.answer(msg)
