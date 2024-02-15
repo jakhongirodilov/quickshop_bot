@@ -112,7 +112,7 @@ async def items_keyboard(category, subcategory):
 
 add_to_cart_callback = CallbackData("add_to_cart", "product_id")
 
-async def item_keyboard(category, subcategory, item_id):
+async def item_keyboard(category, subcategory, item_id, inline_mode=False):
     CURRENT_LEVEL = 3
 
     markup = InlineKeyboardMarkup(row_width=3)
@@ -145,13 +145,14 @@ async def item_keyboard(category, subcategory, item_id):
 
     print(callback_data)
 
-    markup.row(
-        InlineKeyboardButton(
-            text="⬅️Ortga",
-            callback_data=make_callback_data(
-                level=CURRENT_LEVEL - 1, category=category, subcategory=subcategory
-            ),
+    if not inline_mode:
+        markup.row(
+            InlineKeyboardButton(
+                text="⬅️Ortga",
+                callback_data=make_callback_data(
+                    level=CURRENT_LEVEL - 1, category=category, subcategory=subcategory
+                ),
+            )
         )
-    )
 
     return markup

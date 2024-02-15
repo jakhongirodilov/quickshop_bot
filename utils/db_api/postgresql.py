@@ -115,6 +115,10 @@ class Database:
         sql = f"SELECT * FROM products_product WHERE category_id = $1 and subcategory_id=$2"
         return await self.execute(sql, category_id, subcategory_id, fetch=True)
     
+    async def search_products(self, query):
+        sql = "SELECT * FROM products_product WHERE name ILIKE $1"
+        return await self.execute(sql, f"%{query}%", fetch=True)
+    
     async def select_product(self, product_id):
         sql = "SELECT * FROM products_product WHERE id = $1 "
         return await self.execute(sql, product_id, fetchrow=True)

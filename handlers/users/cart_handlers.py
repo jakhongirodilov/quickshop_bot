@@ -16,6 +16,15 @@ async def add_to_cart(call: CallbackQuery, callback_data: dict):
 
     user = await db.select_user(telegram_id=user_id)
 
+    if not user:
+        user = await db.add_user(
+            telegram_id=call.from_user.id,
+            full_name=call.from_user.full_name,
+            username=call.from_user.username,
+        )
+
+    user = await db.select_user(telegram_id=user_id)
+
     product_id = int(callback_data.get('product_id'))
     quantity = 1
 
